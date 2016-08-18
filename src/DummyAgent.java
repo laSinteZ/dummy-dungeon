@@ -81,8 +81,8 @@ class DummyAgent {
     public void digDungeon(DungeonMap map) {
         border = map.getSize();
 
-        x = 2; //setting position of
-        y = 2; //dummy agent
+        x = 2; //setting position of dummy agent
+        y = 2;
         randomDirection();
 
         if (map.isRoomPossible(x-2, y-2, x+2, y+2)) digRoom(map, x-2, y-2, x+2, y+2);

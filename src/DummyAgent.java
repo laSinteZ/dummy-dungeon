@@ -1,6 +1,6 @@
 import java.util.Random;
 
-class DummyAgent{
+class DummyAgent {
     Random rnd = new Random();
 
     private int roomProbability, directionChangeProbability;
@@ -9,67 +9,90 @@ class DummyAgent{
     private int x, y;
     private int border;
 
-    public DummyAgent(){
-        roomProbability=4;
-        directionChangeProbability=4;
+    public DummyAgent() {
+        roomProbability = 4;
+        directionChangeProbability = 4;
     }
 
-    private void randomDirection(){
+    private void randomDirection() {
         int dir = rnd.nextInt(4);
-        if (dir==0) direction=Direction.UP;
-        if (dir==1) direction=Direction.DOWN;
-        if (dir==2) direction=Direction.LEFT;
-        if (dir==3) direction=Direction.RIGHT;
+        if (dir == 0) direction = Direction.UP;
+        if (dir == 1) direction = Direction.DOWN;
+        if (dir == 2) direction = Direction.LEFT;
+        if (dir == 3) direction = Direction.RIGHT;
     }
 
-    public boolean canDig(){
-        if (direction==Direction.UP && y-1<0) return false;
-        if (direction==Direction.DOWN && y+1==border) return false;
-        if (direction==Direction.LEFT && x-1<0) return false;
-        if (direction==Direction.RIGHT && x+1==border) return false;
+    public boolean canDig() {
+        if (direction == Direction.UP && y - 1 < 0) return false;
+        if (direction == Direction.DOWN && y + 1 == border) return false;
+        if (direction == Direction.LEFT && x - 1 < 0) return false;
+        if (direction == Direction.RIGHT && x + 1 == border) return false;
         return true;
     }
 
-    public void digCorridor(DungeonMap map){
-        if (direction==Direction.UP){
+    public void digCorridor(DungeonMap map) {
+        if (direction == Direction.UP) {
             y--;
-            map.setPoint(x,y,1);
         }
-        if (direction==Direction.DOWN){
+        if (direction == Direction.DOWN) {
             y++;
-            map.setPoint(x,y,1);
         }
-        if (direction==Direction.LEFT){
+        if (direction == Direction.LEFT) {
             x--;
-            map.setPoint(x,y,1);
         }
-        if (direction==Direction.RIGHT){
+        if (direction == Direction.RIGHT) {
             x++;
-            map.setPoint(x,y,1);
+        }
+        if (map.getPoint(x, y) != 2) map.setPoint(x, y, 1);
+    }
+
+    public void digRoom(DungeonMap map, int x1, int y1, int x2, int y2) {
+        for (int i = x1; i <= x2; i++) {
+            for (int j = y1; j <= y2; j++) {
+                map.setPoint(i, j, 2);
+            }
         }
     }
 
-    public boolean isTimeToChangeDirection(){
-        if (rnd.nextInt(100)>directionChangeProbability){
-            directionChangeProbability=directionChangeProbability+5;
+    public boolean isTimeToChangeDirection() {
+        if (rnd.nextInt(100) > directionChangeProbability) {
+            directionChangeProbability = directionChangeProbability + 5;
             return false;
-        } else {directionChangeProbability=0;
-        return true;}
+        } else {
+            directionChangeProbability = 0;
+            return true;
+        }
     }
 
-    public void digDungeon(DungeonMap map){
+    public boolean isTimeToCreateRoom() {
+        if (rnd.nextInt(100) > roomProbability) {
+            roomProbability = roomProbability + 5;
+            return false;
+        } else {
+            roomProbability = 0;
+            return true;
+        }
+    }
+
+    public boolean isOnCertainPosition(DungeonMap map, int pos){
+        return (map.getPoint(x,y)==pos);
+    }
+
+    public void digDungeon(DungeonMap map) {
         border = map.getSize();
 
-        x=rnd.nextInt(border); //setting position of
-        y=rnd.nextInt(border); //dummy agent
+        x = 2; //setting position of
+        y = 2; //dummy agent
         randomDirection();
 
-        while (map.getFullness()<0.2){
-            while (!canDig()){
+        if (map.isRoomPossible(x-2, y-2, x+2, y+2)) digRoom(map, x-2, y-2, x+2, y+2);
+        while (map.getFullness() < 0.2) {
+            while (!canDig()) {
                 randomDirection();
             }
             digCorridor(map);
-            if (isTimeToChangeDirection()) randomDirection();
+            if (isTimeToChangeDirection() && !isOnCertainPosition(map, 2)) randomDirection();
+            if (isTimeToCreateRoom() && map.isRoomPossible(x-1, y-1, x+1, y+1)) digRoom(map, x-1, y-1, x+1, y+1);
         }
     }
 }
